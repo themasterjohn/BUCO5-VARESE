@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BUCO5-VARESE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f6f7;
+    --ink: #17191c;
+    --muted: #5f646c;
+    --line: #dcdfe3;
+    --shade: rgba(10, 12, 14, 0.95);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Figtree', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+  header { padding: 56px 0 32px; border-bottom: 1px solid var(--line); }
+  h1 { font-size: clamp(32px, 6vw, 56px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; }
+  #descr { margin-top: 18px; max-width: 62ch; color: var(--muted); font-size: 17px; white-space: pre-line; }
+  #social { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px; list-style: none; }
+  #social a {
+    display: inline-block;
+    padding: 9px 18px;
+    border: 1px solid var(--ink);
+    border-radius: 999px;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: background 0.15s, color 0.15s;
+  }
+  #social a:hover { background: var(--ink); color: var(--bg); }
+  #social a:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+  section { padding: 36px 0 8px; }
+  section[hidden] { display: none; }
+  h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 18px; }
+  h2 small { font-weight: 400; color: var(--muted); font-size: 15px; margin-left: 8px; }
+
+  #photos { columns: 4 260px; column-gap: 12px; }
+  #photos button {
+    display: block; width: 100%; margin: 0 0 12px; padding: 0; border: 0;
+    background: var(--line); cursor: zoom-in; break-inside: avoid; overflow: hidden;
+  }
+  #photos img { display: block; width: 100%; height: auto; transition: opacity 0.2s; }
+  #photos button:hover img { opacity: 0.88; }
+
+  #videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .vtile {
+    position: relative; display: block; width: 100%; padding: 0; border: 0;
+    background: #000; cursor: pointer; overflow: hidden; aspect-ratio: 16 / 9; text-align: left;
+  }
+  .vtile video, .vtile img.poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+  .vtile::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%;
+    background: rgba(0,0,0,0.55)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M26 20l20 12-20 12z' fill='white'/%3E%3C/svg%3E") center / 100% no-repeat;
+    transition: background-color 0.15s;
+  }
+  .vtile:hover::after { background-color: rgba(0,0,0,0.8); }
+  .vtile .cap {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 28px 14px 12px; z-index: 1;
+    background: linear-gradient(transparent, rgba(0,0,0,0.75));
+    color: #fff; font-weight: 600; font-size: 15px;
+  }
+  .vtile:focus-visible, #photos button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+  #message { padding: 24px 0; color: var(--muted); max-width: 520px; }
+  #message strong { color: var(--ink); }
+  footer { padding: 48px 0 56px; color: var(--muted); font-size: 14px; }
+
+  /* Lightbox */
+  #lightbox { position: fixed; inset: 0; background: var(--shade); display: none; align-items: center; justify-content: center; z-index: 100; }
+  #lightbox.open { display: flex; }
+  #lb-img, #lb-video { max-width: 92vw; max-height: 86vh; display: block; object-fit: contain; background: #000; }
+  .lb-btn {
+    position: absolute; background: rgba(255,255,255,0.14); color: #fff; border: 0;
+    width: 52px; height: 52px; border-radius: 50%; font-size: 26px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lb-btn:hover { background: rgba(255,255,255,0.3); }
+  .lb-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  #lb-close { top: 16px; right: 16px; }
+  #lb-prev { left: 16px; top: 50%; transform: translateY(-50%); }
+  #lb-next { right: 16px; top: 50%; transform: translateY(-50%); }
+  #lb-info { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.75); font-size: 14px; text-align: center; max-width: 80vw; }
+
+  @media (max-width: 600px) {
+    .wrap { padding: 0 14px; }
+    header { padding-top: 36px; }
+    #photos { columns: 2 140px; column-gap: 8px; }
+    #photos button { margin-bottom: 8px; }
+    #videos { grid-template-columns: 1fr; }
+    .lb-btn { width: 44px; height: 44px; }
+    #lb-prev { left: 8px; } #lb-next { right: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1 id="title"></h1>
+    <p id="descr"></p>
+    <ul id="social"></ul>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="sec-photos" hidden>
+    <h2>Foto <small id="n-photos"></small></h2>
+    <div id="photos"></div>
+  </section>
+
+  <section id="sec-videos" hidden>
+    <h2>Video <small id="n-videos"></small></h2>
+    <div id="videos"></div>
+  </section>
+
+  <p id="message">Caricamento…</p>
+</main>
+
+<footer class="wrap"></footer>
+
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Anteprima">
+  <button class="lb-btn" id="lb-close" aria-label="Chiudi">&times;</button>
+  <button class="lb-btn" id="lb-prev" aria-label="Precedente">&#8249;</button>
+  <img id="lb-img" alt="" hidden>
+  <video id="lb-video" controls playsinline hidden></video>
+  <button class="lb-btn" id="lb-next" aria-label="Successivo">&#8250;</button>
+  <div id="lb-info"></div>
+</div>
+
+<script>
+// =====================================================
+//  IMPOSTAZIONI: modifica solo questa parte
+// =====================================================
+
+var TITOLO = "BUCO5-VARESE";
+
+var DESCRIZIONE = "Scrivi qui la descrizione della pagina.\nPuoi andare a capo e scrivere più righe.";
+
+// Indirizzi social: uno per riga, tra virgolette. Aggiungi o togli righe a piacere.
+var SOCIAL = [
+  // { nome: "Instagram", url: "https://www.instagram.com/tuonome" },
+  // { nome: "Telegram",  url: "https://t.me/tuonome" },
+  // { nome: "X",         url: "https://x.com/tuonome" },
+];
+
+// Video. "titolo" e "poster" sono facoltativi.
+// "poster" è l'indirizzo di un'immagine usata come anteprima (miniatura).
+// Senza poster, l'anteprima è un fotogramma preso dal video stesso.
+var VIDEO = [
+  // { titolo: "Nome video", url: "https://files.catbox.moe/xxxxx.mp4", poster: "foto/anteprima1.jpg" },
+];
+
+// Foto: vengono lette in automatico dalla cartella "foto" del repository.
+var UTENTE = "themasterjohn";
+var REPO = "BUCO5-VARESE";
+var CARTELLA = "foto";
+
+// Elenco di riserva, usato solo se GitHub non risponde: nomi dei file in /foto.
+var ELENCO_MANUALE = [
+  // "foto1.jpg",
+];
+
+// =====================================================
+
+var ESTENSIONI = /\.(jpe?g|png|gif|webp|avif)$/i;
+var $ = function (id) { return document.getElementById(id); };
+
+var photos = [];
+var list = [];       // elenco attivo nel lightbox
+var listType = "";   // "photo" oppure "video"
+var current = 0;
+
+document.title = TITOLO;
+$("title").textContent = TITOLO;
+$("descr").textContent = DESCRIZIONE;
+if (!DESCRIZIONE) $("descr").style.display = "none";
+
+SOCIAL.forEach(function (s) {
+  var li = document.createElement("li");
+  var a = document.createElement("a");
+  a.href = s.url;
+  a.textContent = s.nome;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  li.appendChild(a);
+  $("social").appendChild(li);
+});
+
+function done() {
+  var any = photos.length || VIDEO.length;
+  $("message").style.display = any ? "none" : "block";
+  if (!any) {
+    $("message").innerHTML = "<strong>Ancora nessun contenuto.</strong><br>Carica le immagini nella cartella <strong>" + CARTELLA + "</strong> del repository e aggiungi i video nell'elenco VIDEO di index.html.";
+  }
+}
+
+function buildPhotos(items) {
+  photos = items;
+  if (!photos.length) { done(); return; }
+  $("sec-photos").hidden = false;
+  $("n-photos").textContent = photos.length;
+  photos.forEach(function (p, i) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-label", "Apri foto " + (i + 1));
+    var img = document.createElement("img");
+    img.src = p.url; img.alt = ""; img.loading = "lazy";
+    b.appendChild(img);
+    b.onclick = function () { openLb(photos, "photo", i); };
+    $("photos").appendChild(b);
+  });
+  done();
+}
+
+function buildVideos() {
+  if (!VIDEO.length) return;
+  $("sec-videos").hidden = false;
+  $("n-videos").textContent = VIDEO.length;
+  VIDEO.forEach(function (v, i) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "vtile";
+    b.setAttribute("aria-label", "Riproduci " + (v.titolo || "video " + (i + 1)));
+    if (v.poster) {
+      var img = document.createElement("img");
+      img.className = "poster"; img.src = v.poster; img.alt = ""; img.loading = "lazy";
+      b.appendChild(img);
+    } else {
+      var vid = document.createElement("video");
+      vid.src = v.url + "#t=0.5";
+      vid.preload = "metadata"; vid.muted = true; vid.playsInline = true;
+      b.appendChild(vid);
+    }
+    if (v.titolo) {
+      var cap = document.createElement("span");
+      cap.className = "cap"; cap.textContent = v.titolo;
+      b.appendChild(cap);
+    }
+    b.onclick = function () { openLb(VIDEO, "video", i); };
+    $("videos").appendChild(b);
+  });
+}
+
+function manualList() {
+  return ELENCO_MANUALE.filter(function (n) { return ESTENSIONI.test(n); })
+    .map(function (n) { return { url: CARTELLA + "/" + encodeURIComponent(n) }; });
+}
+
+buildVideos();
+fetch("https://api.github.com/repos/" + UTENTE + "/" + REPO + "/contents/" + CARTELLA)
+  .then(function (r) { if (!r.ok) throw new Error("api"); return r.json(); })
+  .then(function (items) {
+    buildPhotos(items
+      .filter(function (f) { return f.type === "file" && ESTENSIONI.test(f.name); })
+      .sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true }); })
+      .map(function (f) { return { url: f.download_url }; }));
+  })
+  .catch(function () { buildPhotos(manualList()); });
+
+// ---- Lightbox ----
+function openLb(arr, type, i) {
+  list = arr; listType = type; current = i;
+  show();
+  $("lightbox").classList.add("open");
+  document.body.style.overflow = "hidden";
+  $("lb-close").focus();
+}
+function closeLb() {
+  $("lb-video").pause();
+  $("lb-video").removeAttribute("src");
+  $("lb-video").load();
+  $("lightbox").classList.remove("open");
+  document.body.style.overflow = "";
+}
+function show() {
+  var item = list[current];
+  var img = $("lb-img"), vid = $("lb-video");
+  if (listType === "photo") {
+    vid.pause(); vid.hidden = true;
+    img.hidden = false; img.src = item.url;
+    $("lb-info").textContent = (current + 1) + " / " + list.length;
+  } else {
+    img.hidden = true;
+    vid.hidden = false; vid.src = item.url; vid.play().catch(function () {});
+    $("lb-info").textContent = (item.titolo ? item.titolo + "  -  " : "") + (current + 1) + " / " + list.length;
+  }
+  var one = list.length < 2;
+  $("lb-prev").style.display = one ? "none" : "flex";
+  $("lb-next").style.display = one ? "none" : "flex";
+}
+function step(d) { current = (current + d + list.length) % list.length; show(); }
+
+$("lb-close").onclick = closeLb;
+$("lb-prev").onclick = function (e) { e.stopPropagation(); step(-1); };
+$("lb-next").onclick = function (e) { e.stopPropagation(); step(1); };
+$("lightbox").onclick = function (e) { if (e.target === $("lightbox") || e.target === $("lb-img")) closeLb(); };
+document.addEventListener("keydown", function (e) {
+  if (!$("lightbox").classList.contains("open")) return;
+  if (e.key === "Escape") closeLb();
+  if (e.key === "ArrowLeft") step(-1);
+  if (e.key === "ArrowRight") step(1);
+});
+</script>
+</body>
+</html>
