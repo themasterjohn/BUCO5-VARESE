@@ -150,12 +150,17 @@
 
 var TITOLO = "BUCO5-VARESE";
 
-var DESCRIZIONE = "Trav 25enne. \nSono vogliosa di cazzi. \nSono un buco per cazzi di varese, \nti ospito in cantina per svuotarti i coglioni \nin gola e culo. \nCerco cazzi grossi di ogni età. \nScrivimi ai contatti qui sotto.";
+var DESCRIZIONE = `Trav 25enne. 
+Sono vogliosa di cazzi. 
+Sono un buco per cazzi di varese, ti ospito in cantina per svuotarti i coglioni in gola e culo. 
+Cerco cazzi grossi di ogni età, anche gruppi di amici porci. 
+Scrivimi ai contatti qui sotto.`;
 
 // Indirizzi social: uno per riga, tra virgolette. Aggiungi o togli righe a piacere.
 var SOCIAL = [
-  // { nome: "Telegram",  url: "https://t.me/@ssnake2008" },
-  // { nome: "Teleguard",        MPHJKXG9C },
+  // { nome: "Instagram", url: "https://www.instagram.com/tuonome" },
+  // { nome: "Telegram",  url: "https://t.me/tuonome" },
+  // { nome: "X",         url: "https://x.com/tuonome" },
 ];
 
 // Video. "titolo" e "poster" sono facoltativi.
@@ -271,6 +276,55 @@ fetch("https://api.github.com/repos/" + UTENTE + "/" + REPO + "/contents/" + CAR
       .map(function (f) { return { url: f.download_url }; }));
   })
   .catch(function () { buildPhotos(manualList()); });
+
+// ---- Video dalla cartella "video" ----
+var CARTELLA_VIDEO = "video";
+
+function addVideoTile(v, i) {
+  $("sec-videos").hidden = false;
+  $("n-videos").textContent = VIDEO.length;
+  $("message").style.display = "none";
+  var b = document.createElement("button");
+  b.type = "button";
+  b.className = "vtile";
+  b.setAttribute("aria-label", "Riproduci " + v.titolo);
+  if (v.poster) {
+    var img = document.createElement("img");
+    img.className = "poster"; img.src = v.poster; img.alt = ""; img.loading = "lazy";
+    b.appendChild(img);
+  } else {
+    var vid = document.createElement("video");
+    vid.src = v.url + "#t=0.5";
+    vid.preload = "metadata"; vid.muted = true; vid.playsInline = true;
+    b.appendChild(vid);
+  }
+  var cap = document.createElement("span");
+  cap.className = "cap"; cap.textContent = v.titolo;
+  b.appendChild(cap);
+  b.onclick = function () { openLb(VIDEO, "video", i); };
+  $("videos").appendChild(b);
+}
+
+fetch("https://api.github.com/repos/" + UTENTE + "/" + REPO + "/contents/" + CARTELLA_VIDEO)
+  .then(function (r) { if (!r.ok) throw new Error("api"); return r.json(); })
+  .then(function (items) {
+    var miniature = {};
+    items.forEach(function (f) {
+      if (f.type === "file" && ESTENSIONI.test(f.name)) {
+        miniature[f.name.replace(/\.[^.]+$/, "").toLowerCase()] = f.download_url;
+      }
+    });
+    items
+      .filter(function (f) { return f.type === "file" && /\.(mp4|webm|m4v)$/i.test(f.name); })
+      .sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true }); })
+      .forEach(function (f) {
+        var base = f.name.replace(/\.[^.]+$/, "");
+        var v = { titolo: base.replace(/_/g, " "), url: f.download_url, poster: miniature[base.toLowerCase()] };
+        VIDEO.push(v);
+        addVideoTile(v, VIDEO.length - 1);
+      });
+  })
+  .catch(function () {});
 
 // ---- Lightbox ----
 function openLb(arr, type, i) {
